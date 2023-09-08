@@ -2,6 +2,7 @@ package boss.service;
 
 import boss.dto.request.LessonRequest;
 import boss.dto.response.LessonResponse;
+import boss.dto.response.PaginationResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 
 import java.util.List;
@@ -16,4 +17,6 @@ public interface LessonService {
     SimpleResponse updateLesson(Long id, LessonRequest lessonRequest);
 
     SimpleResponse deleteLesson(Long id);
+
+    PaginationResponse getAllPagination(int currentPage, int pageSize);
 }

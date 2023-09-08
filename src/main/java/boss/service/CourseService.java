@@ -2,6 +2,7 @@ package boss.service;
 
 import boss.dto.request.CourseRequest;
 import boss.dto.response.CourseResponse;
+import boss.dto.response.PaginationResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 
 import java.util.List;
@@ -16,4 +17,7 @@ public interface CourseService {
     SimpleResponse updateCourse(Long courseId, CourseRequest courseRequest);
 
     SimpleResponse delete(Long courseId);
+    List<CourseResponse> sortCourseByStartDate(Long companyId);
+
+    PaginationResponse getAllPagination(int currentPage, int pageSize);
 }

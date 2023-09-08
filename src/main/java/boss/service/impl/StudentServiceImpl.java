@@ -1,6 +1,7 @@
 package boss.service.impl;
 
 import boss.dto.request.StudentRequest;
+import boss.dto.response.PaginationResponse;
 import boss.dto.response.StudentResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 import boss.entities.Group;
@@ -10,13 +11,21 @@ import boss.repo.GroupRepo;
 import boss.repo.StudentRepo;
 import boss.service.StudentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class StudentServiceImpl implements StudentService {
 
     private final StudentRepo studentRepo;
@@ -37,6 +46,7 @@ public class StudentServiceImpl implements StudentService {
                 new NotFoundException(String.format("Group with id: %s not found", groupId)));
         student.setGroup(group);
         studentRepo.save(student);
+        log.info("Student successfully saved to group id: "+groupId);
         return StudentResponse.builder()
                 .firstName(student.getFirstName())
                 .lastName(student.getLastName())
@@ -88,4 +98,27 @@ public class StudentServiceImpl implements StudentService {
                 .message("Student with id: "+id+" successfully deleted")
                 .build();
     }
+
+    @Override
+    public List<StudentResponse> getAllOnlineStudents() {
+        return studentRepo.getAllOnlineStudents();
+    }
+
+    @Override
+    public List<StudentResponse> getAllOfflineStudents() {
+        return studentRepo.getAllOfflineStudents();
+    }
+
+    @Override
+    public PaginationResponse getAllPagination(int currentPage, int pageSize) {
+        Pageable pageable= PageRequest.of(currentPage-1,pageSize);
+        Page<StudentResponse>students=studentRepo.findAllStudents(pageable);
+        return PaginationResponse.builder()
+                .t(Collections.singletonList(students.getContent()))
+                .currentPage(students.getNumber())
+                .pageSize(students.getTotalPages())
+                .build();
+    }
+
+
 }

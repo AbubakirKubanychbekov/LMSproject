@@ -2,6 +2,7 @@ package boss.service.impl;
 
 import boss.dto.request.GroupRequest;
 import boss.dto.response.GroupResponse;
+import boss.dto.response.PaginationResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 import boss.entities.Course;
 import boss.entities.Group;
@@ -10,15 +11,21 @@ import boss.repo.CourseRepo;
 import boss.repo.GroupRepo;
 import boss.service.GroupService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class GroupServiceImpl implements GroupService {
 
     private final GroupRepo groupRepo;
@@ -35,6 +42,7 @@ public class GroupServiceImpl implements GroupService {
         course.addGroup(group);
         group.addCourse(course);
         groupRepo.save(group);
+        log.info("Group successfully saved to course id: "+courseId);
         return GroupResponse.builder()
                 .groupName(groupRequest.groupName())
                 .imageLink(groupRequest.imageLink())
@@ -77,6 +85,17 @@ public class GroupServiceImpl implements GroupService {
         return SimpleResponse.builder()
                 .httpStatus(HttpStatus.OK)
                 .message(String.format("Group with id: %s successfully deleted",id))
+                .build();
+    }
+
+    @Override
+    public PaginationResponse getAllPagination(int currentPage, int pageSize) {
+        Pageable pageable = PageRequest.of(currentPage-1,pageSize);
+        Page<GroupResponse>groups = groupRepo.findAllGroups(pageable);
+        return PaginationResponse.builder()
+                .t(Collections.singletonList(groups.getContent()))
+                .currentPage(groups.getNumber())
+                .pageSize(groups.getTotalPages())
                 .build();
     }
 

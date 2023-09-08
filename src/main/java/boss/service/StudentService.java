@@ -1,6 +1,7 @@
 package boss.service;
 
 import boss.dto.request.StudentRequest;
+import boss.dto.response.PaginationResponse;
 import boss.dto.response.StudentResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 
@@ -16,4 +17,10 @@ public interface StudentService {
     SimpleResponse updateStudent(Long id, StudentRequest studentRequest);
 
     SimpleResponse deleteStudent(Long id);
+
+    List<StudentResponse> getAllOnlineStudents();
+
+    List<StudentResponse> getAllOfflineStudents();
+
+    PaginationResponse getAllPagination(int currentPage, int pageSize);
 }

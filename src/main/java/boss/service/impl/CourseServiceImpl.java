@@ -2,6 +2,7 @@ package boss.service.impl;
 
 import boss.dto.request.CourseRequest;
 import boss.dto.response.CourseResponse;
+import boss.dto.response.PaginationResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 import boss.entities.Company;
 import boss.entities.Course;
@@ -10,15 +11,22 @@ import boss.repo.CompanyRepo;
 import boss.repo.CourseRepo;
 import boss.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepo courseRepo;
@@ -33,6 +41,7 @@ public class CourseServiceImpl implements CourseService {
         Company company = companyRepo.findById(companyId).orElseThrow(() -> new NotFoundException("Company with id: " + companyId + " not found"));
         course.setCompany(company);
         courseRepo.save(course);
+        log.info("Course successfully saved to company id: "+companyId);
         return CourseResponse.builder()
                 .id(course.getId())
                 .courseName(course.getCourseName())
@@ -85,5 +94,24 @@ public class CourseServiceImpl implements CourseService {
                 .message("Successfully course is deleted")
                 .build();
     }
+
+    @Override
+    public List<CourseResponse> sortCourseByStartDate(Long companyId) {
+        List<CourseResponse> allCourses = courseRepo.sortCourseByDate();
+        allCourses.sort(Comparator.comparing(CourseResponse::dateOfStart));
+        return allCourses;
+    }
+
+    @Override
+    public PaginationResponse getAllPagination(int currentPage, int pageSize) {
+        Pageable pageable = PageRequest.of(currentPage-1,pageSize);
+        Page<CourseResponse>courses=courseRepo.getAllCourses(pageable);
+        return PaginationResponse.builder()
+                .t(Collections.singletonList(courses.getContent()))
+                .currentPage(courses.getNumber())
+                .pageSize(courses.getTotalPages())
+                .build();
+    }
+
 
 }

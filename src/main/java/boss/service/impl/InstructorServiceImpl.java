@@ -1,29 +1,40 @@
 package boss.service.impl;
 
 import boss.dto.request.InstructorRequest;
+import boss.dto.response.FullInstructorInfoResponse;
 import boss.dto.response.InstructorResponse;
+import boss.dto.response.PaginationResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 import boss.entities.Company;
+import boss.entities.Group;
 import boss.entities.Instructor;
 import boss.exception.NotFoundException;
 import boss.repo.CompanyRepo;
+import boss.repo.GroupRepo;
 import boss.repo.InstructorRepo;
 import boss.service.InstructorService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class InstructorServiceImpl implements InstructorService {
 
     private final InstructorRepo instructorRepo;
     private final CompanyRepo companyRepo;
+    private final GroupRepo groupRepo;
 
 
     @Override
@@ -34,6 +45,7 @@ public class InstructorServiceImpl implements InstructorService {
         instructor.setPhoneNumber(instructorRequest.phoneNumber());
         instructor.setSpecialization(instructorRequest.specialization());
         instructorRepo.save(instructor);
+        log.info("Instructor successfully saved");
         return SimpleResponse.builder()
                 .httpStatus(HttpStatus.OK)
                 .message("Instructor successfully saved")
@@ -96,6 +108,36 @@ public class InstructorServiceImpl implements InstructorService {
         return SimpleResponse.builder()
                 .httpStatus(HttpStatus.OK)
                 .message("Instructor successfully assign to Company")
+                .build();
+    }
+
+    @Override
+    public FullInstructorInfoResponse getFullInstructorInfo(Long id) {
+        Instructor instructor = instructorRepo.findById(id)
+                .orElseThrow(() -> new NotFoundException("Instructor not found with id: " + id));
+
+        Group group = groupRepo.findById(instructor.getId())
+                .orElseThrow(() -> new NotFoundException("Group not found for instructor with id: " + id));
+
+        int numberOfStudents = group.getStudents().size();
+
+        return new FullInstructorInfoResponse(
+                instructor.getId(),
+                instructor.getFirstName(),
+                instructor.getLastName(),
+                group.getGroupName(),
+                numberOfStudents);
+
+    }
+
+    @Override
+    public PaginationResponse getAllPagination(int currentPage, int pageSize) {
+        Pageable pageable = PageRequest.of(currentPage-1,pageSize);
+        Page<InstructorResponse> instructors = instructorRepo.findAllInstructors(pageable);
+        return PaginationResponse.builder()
+                .t(Collections.singletonList(instructors.getContent()))
+                .currentPage(instructors.getNumber())
+                .pageSize(instructors.getTotalPages())
                 .build();
     }
 }

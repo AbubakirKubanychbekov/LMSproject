@@ -1,6 +1,7 @@
 package boss.service;
 
 import boss.dto.request.TaskRequest;
+import boss.dto.response.PaginationResponse;
 import boss.dto.response.TaskResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 
@@ -16,4 +17,6 @@ public interface TaskService {
     SimpleResponse updateTask(Long id, TaskRequest taskRequest);
 
     SimpleResponse deleteTask(Long id);
+
+    PaginationResponse getAllPagination(int currentPage, int pageSize);
 }

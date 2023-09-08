@@ -1,6 +1,7 @@
 package boss.service.impl;
 
 import boss.dto.request.TaskRequest;
+import boss.dto.response.PaginationResponse;
 import boss.dto.response.TaskResponse;
 import boss.dto.simpleResponse.SimpleResponse;
 import boss.entities.Lesson;
@@ -10,13 +11,21 @@ import boss.repo.LessonRepo;
 import boss.repo.TaskRepo;
 import boss.service.TaskService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
+@Slf4j
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepo taskRepo;
@@ -34,6 +43,7 @@ public class TaskServiceImpl implements TaskService {
                 new NotFoundException(String.format("Lesson with id: %s not found", lessonId)));
         task.setLesson(lesson);
         taskRepo.save(task);
+        log.info("Task successfully saved to lesson id: "+lessonId);
         return TaskResponse.builder()
                 .taskName(task.getTaskName())
                 .taskText(task.getTaskText())
@@ -75,6 +85,17 @@ public class TaskServiceImpl implements TaskService {
         return SimpleResponse.builder()
                 .httpStatus(HttpStatus.OK)
                 .message("Task with id: "+id+" is deleted")
+                .build();
+    }
+
+    @Override
+    public PaginationResponse getAllPagination(int currentPage, int pageSize) {
+        Pageable pageable = PageRequest.of(currentPage-1,pageSize);
+        Page<TaskResponse>tasks=taskRepo.findAllTask(pageable);
+        return PaginationResponse.builder()
+                .t(Collections.singletonList(tasks.getContent()))
+                .currentPage(tasks.getNumber())
+                .pageSize(tasks.getTotalPages())
                 .build();
     }
 

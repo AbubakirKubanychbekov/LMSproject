@@ -1,6 +1,7 @@
 package boss.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +26,7 @@ public class Student {
 
     private String phoneNumber;
 
+    @Column(unique = true)
     private String email;
 
     private String studyFormat;
@@ -33,6 +35,9 @@ public class Student {
 
     @ManyToOne
     private Group group;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private User user;
 
 
 

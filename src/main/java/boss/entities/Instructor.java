@@ -1,6 +1,7 @@
 package boss.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,6 +25,8 @@ public class Instructor {
 
     private String firstName;
     private String lastName;
+
+    @Valid
     private String phoneNumber;
     private String specialization;
 
@@ -31,11 +34,16 @@ public class Instructor {
     cascade = CascadeType.ALL)
     private List<Company> companies = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private User user;
+
     @OneToMany(mappedBy = "instructor",
             cascade = {CascadeType.DETACH,
                     CascadeType.MERGE,
                     CascadeType.PERSIST})
     private List<Course> courses;
+
+
 
     public void addCompany(Company company) {
         if (companies == null) {
